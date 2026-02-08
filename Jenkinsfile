@@ -16,9 +16,17 @@ pipeline {
         }
 
         stage('Documentation') {
-             steps {
-             bat 'mvn javadoc:javadoc'
-             archiveArtifacts artifacts: 'target/site'
+             script {
+                  bat './mvnw javadoc:javadoc'
+
+                  bat 'if exist doc rmdir /S /Q doc'
+                  bat 'mkdir doc'
+
+                  bat 'xcopy /E /I /Y target\\site doc'
+
+                  bat 'powershell -Command "Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
+
+                  archiveArtifacts artifacts: 'doc.zip', fingerprint: true
              }
         }
 
