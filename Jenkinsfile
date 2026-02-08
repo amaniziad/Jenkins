@@ -3,7 +3,6 @@ pipeline {
 
     stages {
 
-
         // ------------------------------
         stage('Test') {
             steps {
@@ -24,21 +23,20 @@ pipeline {
                     bat 'mkdir doc'
 
                     // 3️⃣ Copier la documentation générée
-                    bat 'xcopy /E /I /Y target\site doc'
+                    bat 'xcopy /E /I /Y target\\site doc'
 
                     // 4️⃣ Compresser la documentation en ZIP
-                    bat 'powershell -Command "if (target\site doc.zip) { Remove-Item doc.zip }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
+                    bat 'powershell -Command "if (Test-Path \\"doc.zip\\") { Remove-Item \\"doc.zip\\" }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
 
                     // 5️⃣ Archiver le ZIP dans Jenkins
                     archiveArtifacts artifacts: 'doc.zip', fingerprint: true
 
                     // 6️⃣ Publier le rapport HTML
-                    // Ici on utilise le fichier index.html généré par Maven Javadoc
                     publishHTML(target: [
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'doc',        // dossier contenant la doc
+                        reportDir: 'doc',          // dossier contenant la doc
                         reportFiles: 'index.html', // fichier HTML principal
                         reportName: 'Javadoc',
                         reportTitles: 'Javadoc Report'
@@ -46,7 +44,8 @@ pipeline {
                 }
             }
         }
-// ------------------------------
+
+        // ------------------------------
         stage('Build') {
             steps {
                 // Nettoyage et compilation Maven
@@ -56,8 +55,6 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.jar'
             }
         }
-
-
 
     }
 }
