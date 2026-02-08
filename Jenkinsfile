@@ -2,48 +2,60 @@ pipeline {
     agent any
 
     stages {
+
+        // ------------------------------
         stage('Build') {
             steps {
+                // Nettoyage et compilation Maven
                 bat 'mvn clean install'
+
+                // Archivage des JAR générés
                 archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
+        // ------------------------------
         stage('Test') {
             steps {
+                // Publier les résultats des tests JUnit
                 junit 'target/surefire-reports/*.xml'
             }
         }
 
+        // ------------------------------
         stage('Documentation') {
             steps {
                 script {
-                    // Génération de la doc
+                    // 1️⃣ Génération de la Javadoc
                     bat 'mvnw.cmd javadoc:javadoc'
 
-                    // Supprimer et recréer le dossier doc
+                    // 2️⃣ Supprimer et recréer un dossier "doc" propre
                     bat 'if exist doc rmdir /S /Q doc'
                     bat 'mkdir doc'
 
-                    // Copier la documentation
+                    // 3️⃣ Copier la documentation générée
                     bat 'xcopy /E /I /Y target\\site doc'
 
-                    // Compresser en ZIP
+                    // 4️⃣ Compresser la documentation en ZIP
                     bat 'powershell -Command "if (Test-Path doc.zip) { Remove-Item doc.zip }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
 
-                    // Archiver le ZIP
+                    // 5️⃣ Archiver le ZIP dans Jenkins
                     archiveArtifacts artifacts: 'doc.zip', fingerprint: true
-                    publishHTML (target : [allowMissing: false,
-                     alwaysLinkToLastBuild: true,
-                     keepAll: true,
-                     reportDir: 'reports',
-                     reportFiles: 'myreport.html',
-                     reportName: 'My Reports',
-                     reportTitles: 'The Report'])
+
+                    // 6️⃣ Publier le rapport HTML
+                    // Ici on utilise le fichier index.html généré par Maven Javadoc
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'doc',        // dossier contenant la doc
+                        reportFiles: 'index.html', // fichier HTML principal
+                        reportName: 'Javadoc',
+                        reportTitles: 'Javadoc Report'
+                    ])
                 }
             }
         }
-
 
     }
 }
