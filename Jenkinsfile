@@ -3,71 +3,49 @@ pipeline {
 
     stages {
 
-        // ------------------------------
         stage('Test') {
             steps {
-                // Publier les résultats des tests JUnit
                 junit 'target/surefire-reports/*.xml'
             }
         }
 
-        // ------------------------------
         stage('Documentation') {
             steps {
-                script {
-                    // 1️⃣ Génération de la Javadoc
-                    bat 'mvnw.cmd javadoc:javadoc'
+                bat 'mvnw.cmd javadoc:javadoc'
+                bat 'if exist doc rmdir /S /Q doc'
+                bat 'mkdir doc'
+                bat 'xcopy /E /I /Y target\\site doc'
+                bat 'powershell -Command "if (Test-Path \\"doc.zip\\") { Remove-Item \\"doc.zip\\" }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
+                archiveArtifacts artifacts: 'doc.zip', fingerprint: true
 
-                    // 2️⃣ Supprimer et recréer un dossier "doc" propre
-                    bat 'if exist doc rmdir /S /Q doc'
-                    bat 'mkdir doc'
-
-                    // 3️⃣ Copier la documentation générée
-                    bat 'xcopy /E /I /Y target\\site doc'
-
-                    // 4️⃣ Compresser la documentation en ZIP
-                    bat 'powershell -Command "if (Test-Path \\"doc.zip\\") { Remove-Item \\"doc.zip\\" }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
-
-                    // 5️⃣ Archiver le ZIP dans Jenkins
-                    archiveArtifacts artifacts: 'doc.zip', fingerprint: true
-
-                    // 6️⃣ Publier le rapport HTML
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'doc',          // dossier contenant la doc
-                        reportFiles: 'index.html', // fichier HTML principal
-                        reportName: 'Javadoc',
-                        reportTitles: 'Javadoc Report'
-                    ])
-                }
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'doc',
+                    reportFiles: 'index.html',
+                    reportName: 'Javadoc'
+                ])
             }
         }
 
-        // ------------------------------
         stage('Build') {
             steps {
-                // Nettoyage et compilation Maven
                 bat 'mvn clean install'
-
-                // Archivage des JAR générés
                 archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
-    }
-
-    // ------------------------------
-    post {
-        success {
-            // Envoie un email si le pipeline réussit
-            emailext(
-                subject: "Build réussi !",
-                body: "Le build a réussi",
-                to: "amaniziad66@gmail.com",
-                from: "amaniziad66@gmail.com"
-            )
+        // ✅ Email avec steps
+        stage('Notification') {
+            steps {
+                emailext(
+                    subject: "Build réussi !",
+                    body: "Le build a réussi",
+                    to: "amaniziad66@gmail.com",
+                    from: "amaniziad66@gmail.com"
+                )
+            }
         }
     }
 }
