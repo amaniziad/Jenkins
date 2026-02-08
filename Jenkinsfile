@@ -40,7 +40,7 @@ pipeline {
         stage('Notification') {
             steps {
                 mail(
-                    subject: "Build réussi !",
+                    subject: "Build Réussi ",
                     body: "Le build a réussi",
                     to: "amaniziad66@gmail.com",
                     from: "amaniziad66@gmail.com"
