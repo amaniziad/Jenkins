@@ -3,16 +3,6 @@ pipeline {
 
     stages {
 
-        // ------------------------------
-        stage('Build') {
-            steps {
-                // Nettoyage et compilation Maven
-                bat 'mvn clean install'
-
-                // Archivage des JAR générés
-                archiveArtifacts artifacts: 'target/*.jar'
-            }
-        }
 
         // ------------------------------
         stage('Test') {
@@ -34,10 +24,10 @@ pipeline {
                     bat 'mkdir doc'
 
                     // 3️⃣ Copier la documentation générée
-                    bat 'xcopy /E /I /Y target\\site doc'
+                    bat 'xcopy /E /I /Y target\site doc'
 
                     // 4️⃣ Compresser la documentation en ZIP
-                    bat 'powershell -Command "if (Test-Path doc.zip) { Remove-Item doc.zip }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
+                    bat 'powershell -Command "if (target\site doc.zip) { Remove-Item doc.zip }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
 
                     // 5️⃣ Archiver le ZIP dans Jenkins
                     archiveArtifacts artifacts: 'doc.zip', fingerprint: true
@@ -56,6 +46,18 @@ pipeline {
                 }
             }
         }
+// ------------------------------
+        stage('Build') {
+            steps {
+                // Nettoyage et compilation Maven
+                bat 'mvn clean install'
+
+                // Archivage des JAR générés
+                archiveArtifacts artifacts: 'target/*.jar'
+            }
+        }
+
+
 
     }
 }
