@@ -57,4 +57,16 @@ pipeline {
         }
 
     }
+
+    // ------------------------------
+    post {
+        success {
+            // Envoie un email si le pipeline réussit
+            emailext(
+                subject: "Build réussi !",
+                body: "Le build a réussi",
+                to: "amaniziad66@gmail.com"
+            )
+        }
+    }
 }
