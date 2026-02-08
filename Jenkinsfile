@@ -16,19 +16,27 @@ pipeline {
         }
 
         stage('Documentation') {
-             script {
-                  bat './mvnw javadoc:javadoc'
+            steps {
+                script {
+                    // Génération de la doc
+                    bat 'mvnw.cmd javadoc:javadoc'
 
-                  bat 'if exist doc rmdir /S /Q doc'
-                  bat 'mkdir doc'
+                    // Supprimer et recréer le dossier doc
+                    bat 'if exist doc rmdir /S /Q doc'
+                    bat 'mkdir doc'
 
-                  bat 'xcopy /E /I /Y target\\site doc'
+                    // Copier la documentation
+                    bat 'xcopy /E /I /Y target\\site doc'
 
-                  bat 'powershell -Command "Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
+                    // Compresser en ZIP
+                    bat 'powershell -Command "if (Test-Path doc.zip) { Remove-Item doc.zip }; Compress-Archive -Path doc\\* -DestinationPath doc.zip"'
 
-                  archiveArtifacts artifacts: 'doc.zip', fingerprint: true
-             }
+                    // Archiver le ZIP
+                    archiveArtifacts artifacts: 'doc.zip', fingerprint: true
+                }
+            }
         }
+
 
     }
 }
