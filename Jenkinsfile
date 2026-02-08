@@ -65,7 +65,8 @@ pipeline {
             emailext(
                 subject: "Build réussi !",
                 body: "Le build a réussi",
-                to: "amaniziad66@gmail.com"
+                to: "amaniziad66@gmail.com",
+                from: "amaniziad66@gmail.com"
             )
         }
     }
