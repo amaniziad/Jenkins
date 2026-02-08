@@ -14,5 +14,13 @@ pipeline {
                 junit 'target/surefire-reports/*.xml'
             }
         }
+
+        stage('Documentation') {
+             steps {
+             bat 'mvn javadoc:javadoc'
+             archiveArtifacts artifacts: 'target/site'
+             }
+        }
+
     }
 }
