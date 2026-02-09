@@ -29,45 +29,48 @@ git push -u origin Dev
         }
 
         // ------------------------------
-        stage('Test') {
-            steps {
-                junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
-            }
-        }
+        stage('Build & Test / Documentation') {
+            parallel {
+                stage('Test') {
+                    steps {
+                        junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+                    }
+                }
 
-        // ------------------------------
-        stage('Documentation') {
-            steps {
-                echo "Génération de la Javadoc..."
-                bat 'mvnw.cmd javadoc:javadoc'
+                stage('Documentation') {
+                    steps {
+                        echo "Génération de la Javadoc..."
+                        bat 'mvnw.cmd javadoc:javadoc'
 
-                echo "Nettoyage du dossier doc..."
-                bat 'if exist doc rmdir /S /Q doc'
-                bat 'mkdir doc'
+                        echo "Nettoyage du dossier doc..."
+                        bat 'if exist doc rmdir /S /Q doc'
+                        bat 'mkdir doc'
 
-                echo "Copie de la documentation..."
-                bat 'xcopy /E /I /Y target\\site doc'
+                        echo "Copie de la documentation..."
+                        bat 'xcopy /E /I /Y target\\site doc'
 
-                echo "Compression de doc en ZIP..."
-                bat '''
+                        echo "Compression de doc en ZIP..."
+                        bat '''
 echo if (Test-Path 'doc.zip') { Remove-Item 'doc.zip' -Force } > compress.ps1
 echo Compress-Archive -Path doc\\* -DestinationPath doc.zip >> compress.ps1
 powershell -NoProfile -File compress.ps1
 del compress.ps1
 '''
 
-                echo "Archivage du ZIP..."
-                archiveArtifacts artifacts: 'doc.zip', fingerprint: true
+                        echo "Archivage du ZIP..."
+                        archiveArtifacts artifacts: 'doc.zip', fingerprint: true
 
-                echo "Publication HTML (Javadoc)..."
-                publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'doc',
-                    reportFiles: 'index.html',
-                    reportName: 'Javadoc'
-                ])
+                        echo "Publication HTML (Javadoc)..."
+                        publishHTML(target: [
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'doc',
+                            reportFiles: 'index.html',
+                            reportName: 'Javadoc'
+                        ])
+                    }
+                }
             }
         }
 
