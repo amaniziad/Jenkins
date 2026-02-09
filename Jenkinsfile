@@ -9,6 +9,26 @@ pipeline {
     stages {
 
         // ------------------------------
+        stage('Git Branch') {
+            steps {
+                echo "Création ou renommage de la branche en Dev..."
+                bat '''
+REM Vérifie la branche actuelle
+git branch
+
+REM Renomme la branche locale en Dev
+git branch -m Dev || echo "Branche Dev déjà existante"
+
+REM Supprime l'ancienne branche main sur GitHub si elle existe
+git push origin :main || echo "Ancienne branche main supprimée"
+
+REM Pousse la nouvelle branche Dev sur GitHub et configure le suivi
+git push -u origin Dev
+'''
+            }
+        }
+
+        // ------------------------------
         stage('Test') {
             steps {
                 junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
