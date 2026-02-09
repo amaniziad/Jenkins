@@ -63,13 +63,13 @@ del compress.ps1
         // ------------------------------
         stage('Deploy') {
             steps {
-                echo 'Déploiement Docker avec gestion des containers existants...'
+                echo 'Déploiement Docker avec suppression automatique des containers existants...'
                 bat '''
-REM Stop et supprime l'ancien container si existant
-docker stop spring-boot-app || echo "Pas de container à stopper"
-docker rm spring-boot-app || echo "Pas de container à supprimer"
+REM Arrêt et suppression de tous les containers définis dans docker-compose
+docker-compose down
+docker-compose rm -f
 
-REM Déploiement via docker-compose
+REM Lancement des services
 docker-compose up --build -d
 '''
             }
