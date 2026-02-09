@@ -2,8 +2,13 @@ pipeline {
     agent any
 
     options {
+<<<<<<< HEAD
         timestamps()                 // Ajoute l’heure dans les logs
         disableConcurrentBuilds()    // Évite deux builds en parallèle
+=======
+        timestamps()              // Ajoute l’heure dans les logs
+        disableConcurrentBuilds() // Évite deux builds en parallèle
+>>>>>>> dac3afe (Initial commit)
     }
 
     stages {
@@ -11,7 +16,10 @@ pipeline {
         // ------------------------------
         stage('Test') {
             steps {
+<<<<<<< HEAD
                 // Ne casse pas le build si aucun test n'est trouvé
+=======
+>>>>>>> dac3afe (Initial commit)
                 junit allowEmptyResults: true,
                       testResults: 'target/surefire-reports/*.xml'
             }
@@ -20,6 +28,7 @@ pipeline {
         // ------------------------------
         stage('Documentation') {
             steps {
+<<<<<<< HEAD
                 // Génération de la Javadoc
                 bat 'mvnw.cmd javadoc:javadoc'
 
@@ -37,6 +46,24 @@ pipeline {
                 archiveArtifacts artifacts: 'doc.zip', fingerprint: true
 
                 // Publication HTML (Javadoc)
+=======
+                bat 'mvnw.cmd javadoc:javadoc'
+
+                bat 'if exist doc rmdir /S /Q doc'
+                bat 'mkdir doc'
+
+                bat 'xcopy /E /I /Y target\\site doc'
+
+                bat '''
+                powershell -Command "
+                if (Test-Path 'doc.zip') { Remove-Item 'doc.zip' -Force }
+                Compress-Archive -Path doc\\* -DestinationPath doc.zip
+                "
+                '''
+
+                archiveArtifacts artifacts: 'doc.zip', fingerprint: true
+
+>>>>>>> dac3afe (Initial commit)
                 publishHTML(target: [
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
@@ -51,15 +78,20 @@ pipeline {
         // ------------------------------
         stage('Build') {
             steps {
+<<<<<<< HEAD
                 // Build Maven
                 bat 'mvn clean install'
 
                 // Archivage des JAR
+=======
+                bat 'mvn clean install'
+>>>>>>> dac3afe (Initial commit)
                 archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
         // ------------------------------
+<<<<<<< HEAD
         stage('Notification') {
             steps {
                 // Email simple (plugin Mailer)
@@ -68,6 +100,26 @@ pipeline {
                     body: """Bonjour,
 
 Le build Jenkins a réussi ✅
+=======
+        stage('Deploy') {
+            steps {
+                echo 'Déploiement de l’application avec Docker Compose...'
+                bat '''
+                docker-compose down
+                docker-compose up --build -d
+                '''
+            }
+        }
+
+        // ------------------------------
+        stage('Notification') {
+            steps {
+                mail(
+                    subject: "Build & Déploiement réussis ✔",
+                    body: """Bonjour,
+
+Le build Jenkins et le déploiement Docker ont réussi ✅
+>>>>>>> dac3afe (Initial commit)
 
 Job : ${env.JOB_NAME}
 Build : #${env.BUILD_NUMBER}
